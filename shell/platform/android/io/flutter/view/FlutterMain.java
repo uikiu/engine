@@ -15,6 +15,10 @@ import io.flutter.embedding.engine.loader.FlutterLoader;
  * A legacy class to initialize the Flutter engine.
  *
  * <p>Replaced by {@link io.flutter.embedding.engine.loader.FlutterLoader}.
+ * 
+ * ---------------------------------------------------------------------------------------------
+ * 一个遗产类，用于初始化flutter引擎。legacy是为了兼容。
+ * 全部为静态方法
  */
 public class FlutterMain {
 
@@ -40,6 +44,9 @@ public class FlutterMain {
    * Starts initialization of the native system.
    *
    * @param applicationContext The Android application context.
+   * 
+   * ----------------------------------------------------------------------------------------------
+   * 启动native system 初始化
    */
   public static void startInitialization(@NonNull Context applicationContext) {
     if (isRunningInRobolectricTest) {

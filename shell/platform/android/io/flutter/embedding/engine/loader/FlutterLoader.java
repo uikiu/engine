@@ -23,7 +23,11 @@ import io.flutter.view.VsyncWaiter;
 import java.io.File;
 import java.util.*;
 
-/** Finds Flutter resources in an application APK and also loads Flutter's native library. */
+/** Finds Flutter resources in an application APK and also loads Flutter's native library.
+ * 在apk中找到flutter资源并load native library
+ * 
+ * 
+ */
 public class FlutterLoader {
   private static final String TAG = "FlutterLoader";
 
@@ -45,12 +49,16 @@ public class FlutterLoader {
       FlutterLoader.class.getName() + '.' + FLUTTER_ASSETS_DIR_KEY;
 
   // Resource names used for components of the precompiled snapshot.
+  // 资源组件的名称用于预编译
   private static final String DEFAULT_AOT_SHARED_LIBRARY_NAME = "libapp.so";
   private static final String DEFAULT_VM_SNAPSHOT_DATA = "vm_snapshot_data";
   private static final String DEFAULT_ISOLATE_SNAPSHOT_DATA = "isolate_snapshot_data";
   private static final String DEFAULT_LIBRARY = "libflutter.so";
   private static final String DEFAULT_KERNEL_BLOB = "kernel_blob.bin";
   private static final String DEFAULT_FLUTTER_ASSETS_DIR = "flutter_assets";
+
+
+
 
   // Mutable because default values can be overridden via config properties
   private String aotSharedLibraryName = DEFAULT_AOT_SHARED_LIBRARY_NAME;
@@ -98,19 +106,27 @@ public class FlutterLoader {
    *
    * @param applicationContext The Android application context.
    * @param settings Configuration settings.
+   * -------------------------------------------------------------------------------------------------------------
+   * 1. 加载flutter引擎的本机库，以便启用后续的JNI调用
+   * 2. 查找并解压打包在应用程序apk中dart资源
+   * 
    */
   public void startInitialization(@NonNull Context applicationContext, @NonNull Settings settings) {
     // Do not run startInitialization more than once.
+    //0.1 只允许运行一次
     if (this.settings != null) {
       return;
     }
+
+    //0.2 保证运行在主线程
     if (Looper.myLooper() != Looper.getMainLooper()) {
       throw new IllegalStateException("startInitialization must be called on the main thread");
     }
 
-    // Ensure that the context is actually the application context.
+    //0.3 确保context为Application 而非其他context（比如：activity service） Ensure that the context is actually the application context.
     applicationContext = applicationContext.getApplicationContext();
 
+    //1 赋值 setting
     this.settings = settings;
 
     long initStartTimestampMillis = SystemClock.uptimeMillis();
@@ -128,6 +144,7 @@ public class FlutterLoader {
     // To get Timeline timestamp of the start of initialization we simply subtract the delta
     // from the Timeline timestamp at the current moment (the assumption is that the overhead
     // of the JNI call is negligible).
+    //记录初始化时长
     long initTimeMillis = SystemClock.uptimeMillis() - initStartTimestampMillis;
     FlutterJNI.nativeRecordStartTimestamp(initTimeMillis);
   }
@@ -273,6 +290,9 @@ public class FlutterLoader {
   /**
    * Initialize our Flutter config values by obtaining them from the manifest XML file, falling back
    * to default values.
+   * 
+   * ----------------------------------------------------------------------------------------------------------
+   * 通过manifest XML文件获取flutter 配置信息。如果失败使用默认
    */
   private void initConfig(@NonNull Context applicationContext) {
     Bundle metadata = getApplicationInfo(applicationContext).metaData;
@@ -283,6 +303,7 @@ public class FlutterLoader {
       return;
     }
 
+    //初始化配置参数：从manifest中获取，如果没有则使用默认值
     aotSharedLibraryName =
         metadata.getString(PUBLIC_AOT_SHARED_LIBRARY_NAME, DEFAULT_AOT_SHARED_LIBRARY_NAME);
     flutterAssetsDir =
@@ -293,7 +314,10 @@ public class FlutterLoader {
         metadata.getString(PUBLIC_ISOLATE_SNAPSHOT_DATA_KEY, DEFAULT_ISOLATE_SNAPSHOT_DATA);
   }
 
-  /** Extract assets out of the APK that need to be cached as uncompressed files on disk. */
+  /** Extract assets out of the APK that need to be cached as uncompressed files on disk. 
+   * 
+   * 从apk中提取asset中的资源
+  */
   private void initResources(@NonNull Context applicationContext) {
     new ResourceCleaner(applicationContext).start();
 
